@@ -37,7 +37,7 @@ unsigned int error;
 ///Task 8 variables 
 int led2 = 15;
 
-void task1(){ //Turn LED on and off for duration of "pulse1"
+void task1(void*parameter){ //Turn LED on and off for duration of "pulse1"
   
   digitalWrite(led1, HIGH); //This line coupled with the 2 below will run a signal 
   delayMicroseconds(pulse1);
@@ -77,7 +77,7 @@ void task6(void * parameter){
     task6counter++;}
     delay(100);}
 void task7(void * parameter){ //Check error state 
-  if (compAvg > (0.5 * 1023)){
+  if (compAvg > (0.5 * 1024)){
     error = 1;}
   else{
     error = 0;}
@@ -106,7 +106,15 @@ void setup() {
   pinMode(task3pin, INPUT);
   pinMode(task4pin, INPUT);
 
-  xTaskCreate(task1,"Task 1",1024,NULL,1,NULL);    
+  xTaskCreate(task1,"Task 1",1024,NULL,1,NULL);  
+  xTaskCreate(task2,"Task 2", 1024, NULL, 1, NULL);
+  xTaskCreate(task3,"Task 3",1024,NULL,1,NULL);  
+  xTaskCreate(task4,"Task 4", 1024, NULL, 1, NULL);
+  xTaskCreate(task5,"Task 5",1024,NULL,1,NULL);  
+  xTaskCreate(task6,"Task 6", 1024, NULL, 1, NULL); 
+  xTaskCreate(task7,"Task 7",1024,NULL,1,NULL);  
+  xTaskCreate(task8,"Task 8", 1024, NULL, 1, NULL);  
+  xTaskCreate(task9,"Task 9",1024,NULL,1,NULL);   
 }
 
 void loop() {
