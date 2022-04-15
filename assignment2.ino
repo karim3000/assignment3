@@ -5,8 +5,11 @@
 ///subroutines with names indicative of their purpose.    ////
 ///The main loop will execute tasks based on their frequency//
 ///by dividing the current time by the task period then   ///
-///checking for a remainder.                             ////
+///checking for a remainder.                              ////
+///                                                       ///
+///The
 /////////////////////////////////////////////////////////////
+//#include semphr.h
 
 ///Task 1 variables
 int pulse1 = 0.05 * 1000;  //Represents the duration of the Signal 1 pulse
@@ -28,7 +31,7 @@ int ANLGinput = 0;
 ///Task 5 variables
 unsigned int task5avg;
 int readcounter = 0;
-int oldANLG[] = {};
+int queue[] = {};
 int compAvg = 0;
 ///Task 6 variables
 int task6counter = 0;
@@ -36,17 +39,30 @@ int task6counter = 0;
 unsigned int error;
 ///Task 8 variables 
 int led2 = 15;
+//Task 9 variables
+int pointer = 0;
+int button2 = 0;
+
+struct atask9{
+  int buttonState;
+  int frequency;
+  int compAvg;
+  int error;
+};
+
 
 void task1(void*parameter){ //Turn LED on and off for duration of "pulse1"
+  while (1){
+    digitalWrite(led1, HIGH); //This line coupled with the 2 below will run a signal 
+    vTaskDelay(pulse1 / portTICK_PERIOD_MS);
+    digitalWrite(led1, LOW);
+    vTaskDelay(9 / portTICK_PERIOD_MS);}
+  }
   
-  digitalWrite(led1, HIGH); //This line coupled with the 2 below will run a signal 
-  delayMicroseconds(pulse1);
-  digitalWrite(led1, LOW);
-  delay(9);}
   
 void task2(void * parameter){ //Store button state
   buttonState = digitalRead(button1);
-  delay(200);}
+  vTaskDelay(200 / portTICK_PERIOD_MS);}
   
 void task3(void * parameter){ //Check task 3 pin then calculate the time it takes to change state
   measure1 = digitalRead(task3pin);
@@ -55,33 +71,35 @@ void task3(void * parameter){ //Check task 3 pin then calculate the time it take
   }
   time2 = millis();
   frequency = 1 / (time2 - time1);
-  delay(1000);}
+  vTaskDelay(1000 / portTICK_PERIOD_MS);}
   
 void task4(void * parameter){ //Read and store an analog input from task4pin
+
   readcounter++;
   if (readcounter>=5){
     readcounter = 1;}
   ANLGinput = analogRead(task4pin);
-  oldANLG[readcounter] = ANLGinput;
-  delay(42);}
+  queue[readcounter] = ANLGinput;
+  vTaskDelay(42 / portTICK_PERIOD_MS);}
   
   
 void task5(void * parameter){ //Calculate average of the last 4 analog inputs
-  task5avg = oldANLG[1] + oldANLG[2] + oldANLG[3] + oldANLG[4];
+  task5avg = queue[1] + queue[2] + queue[3] + queue[4];
   compAvg = task5avg / 4;
-  delay(42);}
+  vTaskDelay(42 / portTICK_PERIOD_MS);
+  }
     
 void task6(void * parameter){ 
   while (task6counter <= 100){
     __asm__ __volatile__ ("nop");
     task6counter++;}
-    delay(100);}
+    vTaskDelay(100 / portTICK_PERIOD_MS);}
 void task7(void * parameter){ //Check error state 
   if (compAvg > (0.5 * 1024)){
     error = 1;}
   else{
     error = 0;}
-  delay(333);}
+  vTaskDelay(333 / portTICK_PERIOD_MS);}
     
 void task8(void * parameter){ //LED 2 reflects error state (on = error)
   digitalWrite(led2, error);
@@ -89,12 +107,19 @@ void task8(void * parameter){ //LED 2 reflects error state (on = error)
   
 void task9(void * parameter){
   ///Prints data in the format of: "buttonState, frequency, average"
-  Serial.print(buttonState);
-  Serial.print(", " );
-  Serial.print(frequency);
-  Serial.print(", " );
-  Serial.println(compAvg);
-  delay(5000);}
+  pointer = pointer + 1;
+  if (digitalRead(button2) == HIGH){
+    Serial.print(buttonState);
+    Serial.print(", " );
+    Serial.print(frequency);
+    Serial.print(", " );
+    Serial.println(compAvg);
+    Serial.print(", " );
+    Serial.println(error);}
+
+  atask9 table[pointer] = {buttonState,frequency,compAvg,error};
+  
+  vTaskDelay(5000 / portTICK_PERIOD_MS);}
 
   
 void setup() {
